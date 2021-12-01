@@ -329,7 +329,7 @@ mod tests {
         let mut state_array_string = String::new();
         state_array_string.push_str(
             &state_array
-                .genrows()
+                .rows()
                 .into_iter()
                 .map(|r| r.iter().map(|s| s.to_string()).join(""))
                 .join("\n"),

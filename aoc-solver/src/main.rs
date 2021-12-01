@@ -1,10 +1,10 @@
-#![feature(bool_to_option, once_cell, iterator_fold_self)]
+#![feature(bool_to_option, once_cell)]
 
 use std::fs;
 use std::io::{self, BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-use clap::{crate_authors, crate_version, Clap};
+use clap::{crate_authors, crate_version, Parser};
 
 use aoc_solutions::*;
 
@@ -29,7 +29,7 @@ fn is_valid_day(v: &str) -> Result<(), String> {
         .ok_or("Not a valid day number (between 1 and 25)".to_owned())
 }
 
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 #[clap(version = crate_version!(), author = crate_authors!())]
 struct Options {
     /// Path to the file containing the input or '-' for stdin.

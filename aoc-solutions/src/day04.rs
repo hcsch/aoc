@@ -35,7 +35,7 @@ struct Passport {
     #[validate(regex = "PASSPORT_ID_RE")]
     passport_id: String,
     #[serde(rename = "cid", default)]
-    country_id: Option<String>,
+    _country_id: Option<String>,
 }
 
 fn validate_height(height_str: &str) -> Result<(), ValidationError> {

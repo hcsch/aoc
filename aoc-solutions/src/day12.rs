@@ -2,12 +2,12 @@ use std::convert::{TryFrom, TryInto};
 use std::default::Default;
 use std::str::FromStr;
 
-use aljabar::{InnerSpace, Orthonormal, Point2, Rotation, Vector2};
+use cgmath::{Basis2, Deg, InnerSpace, Point2, Rad, Rotation, Rotation2, Vector2};
 
 #[derive(Debug, Clone, Copy)]
 struct Ship {
     /// An angle in radians, where 0 is east. A positive value implies a CCW-rotation.
-    facing_direction: f64,
+    facing_direction: Rad<f64>,
     position: Point2<f64>,
 }
 
@@ -29,22 +29,22 @@ impl Ship {
 
     fn move_in_direction(&mut self, distance: f64, direction: MoveDirection) {
         let move_dir_radians = match direction {
-            MoveDirection::North => 90f64.to_radians(),
-            MoveDirection::East => 0f64,
-            MoveDirection::South => (-90f64).to_radians(),
-            MoveDirection::West => 180f64.to_radians(),
+            MoveDirection::North => Deg(90f64).into(),
+            MoveDirection::East => Deg(0f64).into(),
+            MoveDirection::South => Deg(-90f64).into(),
+            MoveDirection::West => Deg(180f64).into(),
             MoveDirection::Forward => self.facing_direction,
         };
 
         self.position = self.position
-            + Orthonormal::from(move_dir_radians).rotate_vector(Vector2::from([distance, 0.0]));
+            + Basis2::from_angle(move_dir_radians).rotate_vector(Vector2::from([distance, 0.0]));
     }
 }
 
 impl Default for Ship {
     fn default() -> Self {
         Self {
-            facing_direction: 0.0,
+            facing_direction: Rad(0.0),
             position: Point2::from([0.0, 0.0]),
         }
     }
@@ -101,7 +101,7 @@ enum NavInstruction {
     Turn {
         direction: TurnDirection,
         /// An angle in radians, where 0 is east. A positive value implies a CCW-rotation.
-        angle: f64,
+        angle: Rad<f64>,
     },
 }
 
@@ -122,8 +122,9 @@ impl FromStr for NavInstruction {
                     direction: turn_dir,
                     angle: nav_instruction_str[1..]
                         .parse::<f64>()
-                        .map_err(|_| "Invalid turn instruction str")?
-                        .to_radians(),
+                        .map(Deg)
+                        .map(Rad::from)
+                        .map_err(|_| "Invalid turn instruction str")?,
                 }
             } else {
                 Err("Invalid navigation instruction str")?
@@ -145,7 +146,7 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
             ship
         })
         .position;
-    (final_pos.x().abs() + final_pos.y().abs()).to_string()
+    (final_pos.x.abs() + final_pos.y.abs()).to_string()
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -178,8 +179,8 @@ impl ShipV2 {
         }
     }
 
-    fn rotate_waypoint_around_ship(&mut self, angle_rad: f64) {
-        self.waypoint_rel_pos = Orthonormal::from(angle_rad).rotate_vector(self.waypoint_rel_pos);
+    fn rotate_waypoint_around_ship<R: Into<Rad<f64>>>(&mut self, angle_rad: R) {
+        self.waypoint_rel_pos = Basis2::from_angle(angle_rad).rotate_vector(self.waypoint_rel_pos);
     }
 
     fn move_waypoint(&mut self, distance: f64, direction: MoveDirection) {
@@ -211,5 +212,5 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
             ship
         })
         .position;
-    (final_pos.x().abs() + final_pos.y().abs()).to_string()
+    (final_pos.x.abs() + final_pos.y.abs()).to_string()
 }

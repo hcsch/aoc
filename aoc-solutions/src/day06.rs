@@ -25,7 +25,7 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
         .map(|mut group_customs_decls| {
             group_customs_decls
                 .iter_mut()
-                .fold_first(|acc, person_customs_decl| {
+                .reduce(|acc, person_customs_decl| {
                     acc.extend(person_customs_decl.iter());
                     acc
                 })
@@ -41,7 +41,7 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
         .map(|mut group_customs_decls| {
             group_customs_decls
                 .iter_mut()
-                .fold_first(|acc, person_customs_decl| {
+                .reduce(|acc, person_customs_decl| {
                     acc.retain(|c| person_customs_decl.contains(c));
                     acc
                 })
