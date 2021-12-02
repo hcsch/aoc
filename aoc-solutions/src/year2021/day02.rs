@@ -11,29 +11,24 @@ impl FromStr for SubmarineCommand {
     type Err = &'static str;
 
     fn from_str(cmd_str: &str) -> Result<Self, <Self as FromStr>::Err> {
-        if let Some(units) = cmd_str.strip_prefix("forward ") {
-            return Ok(Self::Forward(
-                units
-                    .parse()
-                    .map_err(|_| "expected unsigned integer after `forward`")?,
-            ));
-        }
-        if let Some(units) = cmd_str.strip_prefix("down ") {
-            return Ok(Self::Down(
-                units
+        match cmd_str.split_once(' ') {
+            Some(("forward", units_str)) => {
+                Ok(Self::Forward(units_str.parse().map_err(|_| {
+                    "expected unsigned integer after `forward`"
+                })?))
+            }
+            Some(("down", units_str)) => Ok(Self::Down(
+                units_str
                     .parse()
                     .map_err(|_| "expected unsigned integer after `down`")?,
-            ));
-        }
-        if let Some(units) = cmd_str.strip_prefix("up ") {
-            return Ok(Self::Up(
-                units
+            )),
+            Some(("up", units_str)) => Ok(Self::Up(
+                units_str
                     .parse()
                     .map_err(|_| "expected unsigned integer after `up`")?,
-            ));
+            )),
+            _ => Err("expected one of `forward <units>`, `down <units>`, `up <units>`"),
         }
-
-        return Err("expected one of `forward <units>`, `down <units>`, `up <units>`");
     }
 }
 
@@ -41,7 +36,7 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let depths: Vec<SubmarineCommand> = input_lines
         .map(|l| {
             l.parse()
-                .expect("Input was not solely lines of unsigned integers")
+                .expect("Input was not solely lines of command, number of units pairs")
         })
         .collect();
 
