@@ -35,6 +35,9 @@ struct Options {
     /// Path to the file containing the input or '-' for stdin.
     #[clap(short, long, parse(from_os_str), default_value = "-")]
     input: PathBuf,
+    /// Year from which the puzzles should be selected
+    #[clap(possible_values = &["2020", "2021"])]
+    year: usize,
     /// Number of the day the puzzles of which should be used
     #[clap(validator(is_valid_day))]
     day: usize,
@@ -52,7 +55,7 @@ fn main() {
         .lines()
         .map(|l| l.expect("Error occurred while reading lines from input"));
 
-    let solution = solve_puzzle(opts.day, opts.puzzle_number, input_lines);
+    let solution = solve_puzzle(opts.year, opts.day, opts.puzzle_number, input_lines);
 
     println!(
         "The solution to puzzle {} of day {} is \"{}\"",
