@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
     let depths: Vec<u32> = input_lines
         .map(|l| {
             l.parse()
@@ -16,10 +16,10 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
         .filter(|&depth_change| depth_change > 0)
         .count();
 
-    solution.to_string()
+    solution
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
     let depths: Vec<u32> = input_lines
         .map(|l| {
             l.parse()
@@ -39,5 +39,5 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
         .filter(|&depth_sum_change| depth_sum_change > 0)
         .count();
 
-    solution.to_string()
+    solution
 }

@@ -137,7 +137,7 @@ fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> impl Iterator<Item
     input_lines.map(|line| line.parse().unwrap())
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> f64 {
     let nav_instructions = parse_input(input_lines);
 
     let final_pos = nav_instructions
@@ -146,7 +146,8 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
             ship
         })
         .position;
-    (final_pos.x.abs() + final_pos.y.abs()).to_string()
+
+    final_pos.x.abs() + final_pos.y.abs()
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -203,7 +204,7 @@ impl Default for ShipV2 {
     }
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> f64 {
     let nav_instructions = parse_input(input_lines);
 
     let final_pos = nav_instructions
@@ -212,5 +213,6 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
             ship
         })
         .position;
-    (final_pos.x.abs() + final_pos.y.abs()).to_string()
+
+    final_pos.x.abs() + final_pos.y.abs()
 }

@@ -65,17 +65,16 @@ fn compute_seat_details(row_part: [RowPart; 7], col_part: [ColPart; 3]) -> (u8, 
     (row_num, col_num, row_num as u32 * 8 + col_num as u32)
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> u32 {
     let seats = parse_input(input_lines);
     seats
         .map(|(row_part, col_part)| compute_seat_details(row_part, col_part))
         .map(|(_, _, seat_id)| seat_id)
         .max()
         .unwrap()
-        .to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> u32 {
     let seats = parse_input(input_lines);
     seats
         .map(|(row_part, col_part)| compute_seat_details(row_part, col_part))
@@ -91,7 +90,6 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
         .flatten()
         .next()
         .unwrap()
-        .to_string()
 }
 
 // pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {

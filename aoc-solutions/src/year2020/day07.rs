@@ -97,7 +97,7 @@ fn count_contained_bags_helper(
     contained_bags_count
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
     let bags_contains_map = parse_input(input_lines);
     bags_contains_map
         .keys()
@@ -105,10 +105,9 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
             can_contain_bag(&bags_contains_map, container_bag_name, "shiny gold")
         })
         .count()
-        .to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
     let bags_contains_map = parse_input(input_lines);
-    count_contained_bags(&bags_contains_map, "shiny gold").to_string()
+    count_contained_bags(&bags_contains_map, "shiny gold")
 }

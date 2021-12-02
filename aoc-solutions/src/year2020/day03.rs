@@ -23,17 +23,16 @@ fn count_trees_encountered(tree_map: &Vec<Vec<bool>>, slope: (usize, usize)) -> 
         .count()
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
     let tree_map = parse_input(input_lines);
-    count_trees_encountered(&tree_map, (3, 1)).to_string()
+    count_trees_encountered(&tree_map, (3, 1))
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
     let tree_map = parse_input(input_lines);
     let slopes = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
     slopes
         .iter()
         .map(|slope| count_trees_encountered(&tree_map, *slope))
-        .product::<usize>()
-        .to_string()
+        .product()
 }
