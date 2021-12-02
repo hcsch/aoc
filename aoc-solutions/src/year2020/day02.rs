@@ -32,13 +32,14 @@ fn parse_input<I: Iterator<Item = String>>(
     })
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     parse_input(input_lines)
         .filter(|(min_u, max_u, req_l, pw)| (*min_u..=*max_u).contains(&pw.matches(req_l).count()))
         .count()
+        .to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     parse_input(input_lines)
         .filter(|(first_pos, second_pos, req_l, pw)| {
             let req_l = req_l.as_bytes()[0];
@@ -46,4 +47,5 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
             (pw[first_pos - 1] == req_l) ^ (pw[second_pos - 1] == req_l)
         })
         .count()
+        .to_string()
 }

@@ -37,7 +37,7 @@ impl FromStr for SubmarineCommand {
     }
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> u32 {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let depths: Vec<SubmarineCommand> = input_lines
         .map(|l| {
             l.parse()
@@ -57,10 +57,10 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> u32 {
 
     let solution = final_depth * final_horizontal_pos;
 
-    solution
+    solution.to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> u32 {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let depths: Vec<SubmarineCommand> = input_lines
         .map(|l| {
             l.parse()
@@ -82,5 +82,5 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> u32 {
 
     let solution = final_depth * final_horizontal_pos;
 
-    solution
+    solution.to_string()
 }

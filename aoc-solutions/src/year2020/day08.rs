@@ -89,16 +89,18 @@ fn execute_program(program: &Vec<Instruction>) -> Result<isize, ProgramExecution
     Ok(accumulator_value)
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> isize {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let program = parse_input(input_lines);
 
     match execute_program(&program) {
-        Err(ProgramExecutionError::EncounteredLoop { accumulator_value }) => accumulator_value,
+        Err(ProgramExecutionError::EncounteredLoop { accumulator_value }) => {
+            accumulator_value.to_string()
+        }
         _ => panic!("Program does not loop infinitely"),
     }
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> isize {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let program = parse_input(input_lines);
     let mut modified_program = program.clone();
 
@@ -123,7 +125,7 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> isize {
         last_modified_instruction = Some(i);
 
         if let Ok(accumulator_value) = execute_program(&modified_program) {
-            return accumulator_value;
+            return accumulator_value.to_string();
         }
     }
 

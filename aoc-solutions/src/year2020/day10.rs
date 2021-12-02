@@ -11,7 +11,7 @@ pub fn compute_joltage_deltas<'a>(
         .map(|(a, b)| b - a)
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> i32 {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut charger_ratings = parse_input(input_lines);
 
     charger_ratings.push(0);
@@ -28,10 +28,10 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> i32 {
         },
     );
 
-    num_ones * num_threes
+    (num_ones * num_threes).to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut charger_ratings = parse_input(input_lines);
 
     charger_ratings.push(0);
@@ -55,5 +55,5 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
         }
     }
 
-    num_cfgs.iter().sum()
+    num_cfgs.iter().sum::<usize>().to_string()
 }

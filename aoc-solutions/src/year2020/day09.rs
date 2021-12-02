@@ -24,15 +24,15 @@ fn find_first_invalid(xmas_numbers: &Vec<usize>) -> Option<(usize, usize)> {
         })
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let xmas_numbers = parse_input(input_lines);
 
     let (_first_match_i, first_match) = find_first_invalid(&xmas_numbers).unwrap();
 
-    first_match
+    first_match.to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let xmas_numbers = parse_input(input_lines);
 
     let (_first_match_i, first_match) = find_first_invalid(&xmas_numbers).unwrap();
@@ -60,5 +60,5 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
         }
     }
 
-    solution.unwrap()
+    solution.unwrap().to_string()
 }

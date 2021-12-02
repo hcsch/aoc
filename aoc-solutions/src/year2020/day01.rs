@@ -1,6 +1,6 @@
 use std::convert::identity;
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> i64 {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let expenses: Vec<i64> = input_lines
         .map(|l| {
             l.parse::<i64>()
@@ -24,10 +24,10 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> i64 {
         .find_map(identity)
         .expect("No two expenses add up to 2020");
 
-    solution
+    solution.to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> i64 {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let expenses: Vec<i64> = input_lines
         .map(|l| {
             l.parse::<i64>()
@@ -53,5 +53,5 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> i64 {
         .find_map(identity)
         .expect("No three expenses add up to 2020");
 
-    solution
+    solution.to_string()
 }

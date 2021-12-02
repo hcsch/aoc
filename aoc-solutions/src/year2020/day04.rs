@@ -79,16 +79,17 @@ fn parse_input<I: Iterator<Item = String>>(
         })
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let passports = parse_input(input_lines);
-    passports.filter(Result::is_ok).count()
+    passports.filter(Result::is_ok).count().to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let passports = parse_input(input_lines);
     passports
         .filter(Result::is_ok)
         .map(Result::unwrap)
         .filter(|pp| pp.validate().is_ok())
         .count()
+        .to_string()
 }

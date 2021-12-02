@@ -122,7 +122,7 @@ impl<'a> Iterator for StateUpdateIter<'a> {
     }
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut seat_states = parse_input(input_lines);
 
     loop {
@@ -141,6 +141,7 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
         .iter()
         .filter(|s| **s == SeatState::Occupied)
         .count()
+        .to_string()
 }
 
 struct TweakedStateUpdateIter<'a> {
@@ -199,7 +200,7 @@ impl<'a> Iterator for TweakedStateUpdateIter<'a> {
     }
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut seat_states = parse_input(input_lines);
 
     loop {
@@ -218,6 +219,7 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
         .iter()
         .filter(|s| **s == SeatState::Occupied)
         .count()
+        .to_string()
 }
 
 #[cfg(test)]
@@ -319,7 +321,7 @@ mod tests {
     fn test_solve_puzzle1() {
         assert_eq!(
             solve_puzzle1(STATE_STRS[0].lines().map(|l| l.to_owned())),
-            37
+            String::from("37")
         );
     }
 

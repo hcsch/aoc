@@ -19,7 +19,7 @@ fn parse_input<I: Iterator<Item = String>>(
     })
 }
 
-pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let groups_customs_decls = parse_input(input_lines);
     groups_customs_decls
         .map(|mut group_customs_decls| {
@@ -31,10 +31,11 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> usize {
                 })
                 .map_or(0, |group_customs_decl| group_customs_decl.len())
         })
-        .sum()
+        .sum::<usize>()
+        .to_string()
 }
 
-pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
+pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let groups_customs_decls = parse_input(input_lines);
     groups_customs_decls
         .map(|mut group_customs_decls| {
@@ -46,5 +47,6 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> usize {
                 })
                 .map_or(0, |group_customs_decl| group_customs_decl.len())
         })
-        .sum()
+        .sum::<usize>()
+        .to_string()
 }

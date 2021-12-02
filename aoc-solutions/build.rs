@@ -24,7 +24,7 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let mut source = "use std::fmt::Display;\n".to_owned();
+    let mut source = String::new();
     let mut solved_days_with_year = vec![];
 
     for (path, year) in solved_years.iter() {
@@ -51,7 +51,7 @@ fn main() {
                 day: usize,
                 puzzle_number: usize,
                 input_lines: I,
-            ) -> Box<dyn Display> {
+            ) -> String {
                 #[allow(overlapping_patterns)]
                 match (year, day, puzzle_number) {
         "#});
@@ -59,7 +59,7 @@ fn main() {
     for (year, day) in solved_days_with_year.iter() {
         for puzzle in 1..=2 {
             writeln!(source, 
-                "        ({year}, {day}, {puzzle}) => Box::new(year{year:04}::day{day:02}::solve_puzzle{puzzle}(input_lines)),\n",
+                "        ({year}, {day}, {puzzle}) => year{year:04}::day{day:02}::solve_puzzle{puzzle}(input_lines),\n",
                 year = year,
                 day = day,
                 puzzle = puzzle
