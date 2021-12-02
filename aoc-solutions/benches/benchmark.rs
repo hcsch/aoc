@@ -7,11 +7,9 @@ use paste::paste;
 
 use aoc_solutions::*;
 
-fn read_input_lines(year: &str, qualified_puzzle_id: &str) -> Vec<String> {
-    let input_path = Path::new(env!("CARGO_MANIFEST_DIR")).join(&format!(
-        "../res/year{}/input_{}.txt",
-        year, qualified_puzzle_id
-    ));
+fn read_input_lines(year: u32, day: u32) -> Vec<String> {
+    let input_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join(&format!("../res/year{:04}/input_day{:02}.txt", year, day));
 
     BufReader::new(
         fs::OpenOptions::new()
@@ -36,7 +34,7 @@ macro_rules! bench_puzzles {
                         let mut group = c.benchmark_group(&format!("year {:04} day {:02}", $year, $day));
 
                         let input_lines =
-                            read_input_lines(&format!("year{:04}", $year), &format!("day{:02}", $day));
+                            read_input_lines($year, $day);
 
                         group.bench_function("puzzle 1", |b| {
                             b.iter_batched(
