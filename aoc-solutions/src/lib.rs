@@ -5,4 +5,7 @@
     exclusive_range_pattern
 )]
 
+pub mod year2020;
+pub mod year2021;
+
 include!(concat!(env!("OUT_DIR"), "/generated.rs"));

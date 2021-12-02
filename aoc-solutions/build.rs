@@ -1,6 +1,6 @@
 use std::{env, fmt::Write, fs, path::Path};
 
-use indoc::{formatdoc, indoc};
+use indoc::indoc;
 
 fn main() {
     let out_dir = env::var_os("OUT_DIR").unwrap();
@@ -42,30 +42,7 @@ fn main() {
             })
             .collect::<Vec<_>>();
 
-        source.push_str(&formatdoc! {r#"
-            pub mod year{year:04} {{
-            "#,
-            year = year,
-        });
-
-        for day in solved_days.iter().copied() {
-            writeln!(
-                source,
-                "    pub mod day{day:02} {{ include!(\"{day_file}\"); }}",
-                day = day,
-                day_file = path
-                    .join(&format!("day{day:02}.rs", day = day))
-                    .to_str()
-                    .unwrap(),
-            )
-            .unwrap();
-            solved_days_with_year.push((year, day));
-        }
-
-        source.push_str(indoc! {r#"
-            }
-
-        "#});
+        solved_days_with_year.extend(solved_days.iter().copied().map(|day| (year, day)));
     }
 
     source.push_str(indoc! {r#"
@@ -81,12 +58,12 @@ fn main() {
 
     for (year, day) in solved_days_with_year.iter() {
         for puzzle in 1..=2 {
-            source.push_str(&format!(
+            writeln!(source, 
                 "        ({year}, {day}, {puzzle}) => year{year:04}::day{day:02}::solve_puzzle{puzzle}(input_lines),\n",
                 year = year,
                 day = day,
                 puzzle = puzzle
-            ));
+            ).unwrap();
         }
     }
 
