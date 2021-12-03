@@ -1,27 +1,26 @@
-pub fn num_to_bit_array(num: u16) -> [u16; 16] {
-    [
-        ((num >> 15) & 1),
-        ((num >> 14) & 1),
-        ((num >> 13) & 1),
-        ((num >> 12) & 1),
-        ((num >> 11) & 1),
-        ((num >> 10) & 1),
-        ((num >> 9) & 1),
-        ((num >> 8) & 1),
-        ((num >> 7) & 1),
-        ((num >> 6) & 1),
-        ((num >> 5) & 1),
-        ((num >> 4) & 1),
-        ((num >> 3) & 1),
-        ((num >> 2) & 1),
-        ((num >> 1) & 1),
-        ((num >> 0) & 1),
-    ]
+/// Returns an array with the counts of bits set over all numbers for each bit index.
+/// Bit indices are LSB to MSB ascending.
+pub fn count_set_per_index<I: Iterator<Item = u16>>(nums: I) -> [u16; 16] {
+    nums.fold([0; 16], |mut acc, num| {
+        for i in 0usize..16 {
+            acc[i] += num >> i & 1;
+        }
+        acc
+    })
 }
 
-pub fn sum_arrays(mut a: [u16; 16], b: [u16; 16]) -> [u16; 16] {
-    a.iter_mut().zip(b).for_each(|(a, b)| *a = *a + b);
-    a
+pub fn count_set_at_index<I: Iterator<Item = u16>>(nums: I, i: usize) -> usize {
+    nums.map(|num| usize::from(num >> i & 1)).sum()
+}
+
+pub fn num_significant_bits(count_set_per_index: [u16; 16]) -> usize {
+    16 - count_set_per_index
+        .iter()
+        .rev()
+        .copied()
+        .enumerate()
+        .find_map(|(i, count)| if count > 0 { Some(i) } else { None })
+        .unwrap_or(16)
 }
 
 pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
@@ -29,37 +28,22 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
         .map(|l| u16::from_str_radix(&l, 2).expect("Input was not solely lines of binary integers"))
         .collect();
 
-    let ones_count_per_bit = diagnostic_nums
-        .iter()
-        .copied()
-        .map(|diagnostic_num| num_to_bit_array(diagnostic_num))
-        .fold([0; 16], |ones_count_per_bit, bit_array| {
-            sum_arrays(ones_count_per_bit, bit_array)
-        });
+    let count_set_per_index = count_set_per_index(diagnostic_nums.iter().copied());
 
     let mut gamma_rate = 0u16;
     let mut epsilon_rate = 0u16;
 
-    let first_bit_i = ones_count_per_bit
+    let num_significant_bits = num_significant_bits(count_set_per_index);
+
+    for (i, ones_count) in count_set_per_index
         .iter()
         .copied()
+        .take(num_significant_bits)
         .enumerate()
-        .find_map(|(i, count)| if count > 0 { Some(i) } else { None })
-        .unwrap_or(15);
-
-    let total_num_diagnositc_nums = diagnostic_nums.len();
-    for (i, ones_count) in ones_count_per_bit.iter().copied().enumerate() {
-        gamma_rate |= if ones_count as usize >= total_num_diagnositc_nums / 2 {
-            1 << (15 - i)
-        } else {
-            0
-        };
-        epsilon_rate |= if i >= first_bit_i && (ones_count as usize) < total_num_diagnositc_nums / 2
-        {
-            1 << (15 - i)
-        } else {
-            0
-        };
+    {
+        let most_common_value = (ones_count as usize >= diagnostic_nums.len() / 2) as u16;
+        gamma_rate |= most_common_value << i;
+        epsilon_rate |= (1 - most_common_value) << i;
     }
 
     let solution = gamma_rate as u32 * epsilon_rate as u32;
@@ -72,64 +56,41 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
         .map(|l| u16::from_str_radix(&l, 2).expect("Input was not solely lines of binary integers"))
         .collect();
 
-    let ones_count_per_bit = diagnostic_nums
-        .iter()
-        .copied()
-        .map(|diagnostic_num| num_to_bit_array(diagnostic_num))
-        .fold([0; 16], |ones_count_per_bit, bit_array| {
-            sum_arrays(ones_count_per_bit, bit_array)
-        });
+    let count_set_per_index = count_set_per_index(diagnostic_nums.iter().copied());
 
-    let first_bit_i = ones_count_per_bit
-        .iter()
-        .copied()
-        .enumerate()
-        .find_map(|(i, count)| if count > 0 { Some(i) } else { None })
-        .unwrap_or(15);
+    let num_significant_bits = num_significant_bits(count_set_per_index);
 
-    let mut nums_matching_most_common: Vec<(u16, [u16; 16])> = diagnostic_nums
-        .iter()
-        .copied()
-        .map(|diagnostic_num| (diagnostic_num, num_to_bit_array(diagnostic_num)))
-        .collect();
+    let mut nums_matching_most_common: Vec<u16> = diagnostic_nums.clone();
 
-    let mut i = first_bit_i;
-    while nums_matching_most_common.len() > 1 {
-        let most_common_bit = (nums_matching_most_common
-            .iter()
-            .map(|(_, bits)| bits[i] as usize)
-            .sum::<usize>()
-            >= (nums_matching_most_common.len() + 1) / 2) as u16;
+    for i in (0..num_significant_bits).rev() {
+        let num_set: usize = count_set_at_index(nums_matching_most_common.iter().copied(), i);
+        let num_unset = nums_matching_most_common.len() - num_set;
+        let most_common_value = if num_set >= num_unset { 1 } else { 0 };
 
-        nums_matching_most_common.retain_mut(|(_, bits)| bits[i] == most_common_bit);
-        i += 1;
+        nums_matching_most_common.retain(|num| (num >> i & 1) == most_common_value);
+
+        if nums_matching_most_common.len() <= 1 {
+            break;
+        }
     }
 
-    let oxygen_generator_rating = nums_matching_most_common.first().unwrap().0;
+    let oxygen_generator_rating = *nums_matching_most_common.first().unwrap();
 
-    let mut nums_matching_least_common: Vec<(u16, [u16; 16])> = diagnostic_nums
-        .iter()
-        .copied()
-        .map(|diagnostic_num| (diagnostic_num, num_to_bit_array(diagnostic_num)))
-        .collect();
+    let mut nums_matching_least_common: Vec<u16> = diagnostic_nums.clone();
 
-    let mut i = first_bit_i;
-    while nums_matching_least_common.len() > 1 {
-        let num_ones = nums_matching_least_common
-            .iter()
-            .map(|(_, bits)| bits[i] as usize)
-            .sum::<usize>();
-        let least_common_bit = ((nums_matching_least_common.len() % 2 == 0
-            && num_ones < nums_matching_least_common.len() / 2)
-            || (nums_matching_least_common.len() % 2 != 0
-                && num_ones <= nums_matching_least_common.len() / 2))
-            as u16;
+    for i in (0..num_significant_bits).rev() {
+        let num_set: usize = count_set_at_index(nums_matching_least_common.iter().copied(), i);
+        let num_unset = nums_matching_least_common.len() - num_set;
+        let least_common_value = if num_unset <= num_set { 0 } else { 1 };
 
-        nums_matching_least_common.retain_mut(|(_, bits)| bits[i] == least_common_bit);
-        i += 1;
+        nums_matching_least_common.retain(|num| (num >> i & 1) == least_common_value);
+
+        if nums_matching_least_common.len() <= 1 {
+            break;
+        }
     }
 
-    let co2_scrubber_rating = nums_matching_least_common.first().unwrap().0;
+    let co2_scrubber_rating = *nums_matching_least_common.first().unwrap();
 
     let solution = oxygen_generator_rating as u32 * co2_scrubber_rating as u32;
 
