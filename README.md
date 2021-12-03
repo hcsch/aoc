@@ -28,7 +28,7 @@ You can also run
 ```sh
 cargo bench "year 2021 day 03/puzzle 2"
 ```
-but this will not generate a report HTML file in `target/criterion/reports/` anymore in the future (see bheisler/criterion.rs#426).
+but this will not generate a report HTML file in `target/criterion/reports/` anymore in the future (see [bheisler/criterion.rs#426](https://github.com/bheisler/criterion.rs/issues/426)).
 
 *Note: I haven't really tried to seriously optimize any of these solutions,
 the use of criterion is more for fun in this case.*
