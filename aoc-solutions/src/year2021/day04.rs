@@ -1,36 +1,56 @@
-use ndarray::{Array2, Axis};
+use std::cmp;
 
 struct BingoBoard {
-    numbers: Array2<u8>,
-    marked: Array2<bool>,
+    numbers: [u8; 5 * 5],
+    marked: [bool; 5 * 5],
 }
 
 impl BingoBoard {
     pub fn has_won(&self) -> bool {
-        *self
-            .marked
-            .map(|&num_marked| num_marked as u8)
-            .sum_axis(Axis(0))
-            .iter()
+        (0..5)
+            .map(|i| {
+                let num_marked_in_row: u8 = self
+                    .marked
+                    .iter()
+                    .copied()
+                    .skip(i * 5)
+                    .take(5)
+                    .map(|marked| marked as u8)
+                    .sum();
+                let num_marked_in_col: u8 = self
+                    .marked
+                    .iter()
+                    .copied()
+                    .skip(i)
+                    .step_by(5)
+                    .map(|marked| marked as u8)
+                    .sum();
+
+                cmp::max(num_marked_in_row, num_marked_in_col)
+            })
             .max()
             .unwrap()
             >= 5
-            || *self
-                .marked
-                .map(|&num_marked| num_marked as u8)
-                .sum_axis(Axis(1))
-                .iter()
-                .max()
-                .unwrap()
-                >= 5
     }
 
     pub fn get_score(&self, last_called_num: u8) -> usize {
-        (&self.numbers * self.marked.map(|&num_marked| (!num_marked) as u8))
+        self.numbers
             .iter()
-            .map(|&unmarked_num_or_zero| unmarked_num_or_zero as usize)
+            .copied()
+            .zip(self.marked)
+            .filter_map(|(num, marked)| (!marked).then_some(num))
+            .map(|unmarked_num_or_zero| unmarked_num_or_zero as usize)
             .sum::<usize>()
             * last_called_num as usize
+    }
+
+    pub fn mark_if_present(&mut self, called_num: u8) {
+        self.numbers
+            .iter()
+            .copied()
+            .zip(self.marked.as_mut())
+            .filter(|(num, _marked)| *num == called_num)
+            .for_each(|(_num, marked)| *marked = true)
     }
 }
 
@@ -44,13 +64,13 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> (Vec<u8>, Vec<
 
     let mut bingo_boards = vec![];
 
+    let mut board_numbers = vec![];
+
     loop {
         // Drop empty line between boards or stop if at end of file
         if input_lines.next().is_none() {
             break;
         }
-
-        let mut board_numbers = vec![];
 
         for _ in 0..5 {
             board_numbers.extend(
@@ -65,10 +85,17 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> (Vec<u8>, Vec<
             );
         }
 
+        let board_nums_array = board_numbers
+            .as_slice()
+            .try_into()
+            .expect("incorrect number of numbers per board, expected 5 * 5 = 25");
+
         bingo_boards.push(BingoBoard {
-            numbers: Array2::from_shape_vec((5, 5), board_numbers).unwrap(),
-            marked: Array2::from_elem((5, 5), false),
+            numbers: board_nums_array,
+            marked: [false; 5 * 5],
         });
+
+        board_numbers.clear();
     }
 
     (called_numbers, bingo_boards)
@@ -81,11 +108,7 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
 
     for called_num in called_numbers {
         for board in bingo_boards.iter_mut() {
-            for (index, &num) in board.numbers.indexed_iter() {
-                if num == called_num {
-                    board.marked[index] = true;
-                }
-            }
+            board.mark_if_present(called_num);
         }
 
         if let Some(board) = bingo_boards.iter().find(|board| board.has_won()) {
@@ -104,11 +127,7 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
 
     for called_num in called_numbers {
         for board in bingo_boards.iter_mut() {
-            for (index, &num) in board.numbers.indexed_iter() {
-                if num == called_num {
-                    board.marked[index] = true;
-                }
-            }
+            board.mark_if_present(called_num);
         }
 
         if bingo_boards.len() > 1 {
