@@ -33,13 +33,13 @@ impl BingoBoard {
             >= 5
     }
 
-    pub fn get_score(&self, last_called_num: u8) -> usize {
+    pub fn score(&self, last_called_num: u8) -> usize {
         self.numbers
             .iter()
             .copied()
             .zip(self.marked)
             .filter_map(|(num, marked)| (!marked).then_some(num))
-            .map(|unmarked_num_or_zero| unmarked_num_or_zero as usize)
+            .map(|unmarked_num| unmarked_num as usize)
             .sum::<usize>()
             * last_called_num as usize
     }
@@ -55,7 +55,7 @@ impl BingoBoard {
 }
 
 fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> (Vec<u8>, Vec<BingoBoard>) {
-    let called_numbers = input_lines
+    let called_nums = input_lines
         .next()
         .expect("expected line with numbers, found EOF")
         .split(',')
@@ -64,7 +64,7 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> (Vec<u8>, Vec<
 
     let mut bingo_boards = vec![];
 
-    let mut board_numbers = vec![];
+    let mut board_nums = vec![];
 
     loop {
         // Drop empty line between boards or stop if at end of file
@@ -73,7 +73,7 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> (Vec<u8>, Vec<
         }
 
         for _ in 0..5 {
-            board_numbers.extend(
+            board_nums.extend(
                 input_lines
                     .next()
                     .expect("expected board line, found EOF")
@@ -85,7 +85,7 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> (Vec<u8>, Vec<
             );
         }
 
-        let board_nums_array = board_numbers
+        let board_nums_array = board_nums
             .as_slice()
             .try_into()
             .expect("incorrect number of numbers per board, expected 5 * 5 = 25");
@@ -95,24 +95,24 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> (Vec<u8>, Vec<
             marked: [false; 5 * 5],
         });
 
-        board_numbers.clear();
+        board_nums.clear();
     }
 
-    (called_numbers, bingo_boards)
+    (called_nums, bingo_boards)
 }
 
 pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
-    let (called_numbers, mut bingo_boards) = parse_input(input_lines);
+    let (called_nums, mut bingo_boards) = parse_input(input_lines);
 
     let mut solution = None;
 
-    for called_num in called_numbers {
+    for called_num in called_nums {
         for board in bingo_boards.iter_mut() {
             board.mark_if_present(called_num);
         }
 
         if let Some(board) = bingo_boards.iter().find(|board| board.has_won()) {
-            solution = Some(board.get_score(called_num));
+            solution = Some(board.score(called_num));
             break;
         }
     }
@@ -121,11 +121,11 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
 }
 
 pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
-    let (called_numbers, mut bingo_boards) = parse_input(input_lines);
+    let (called_nums, mut bingo_boards) = parse_input(input_lines);
 
     let mut solution = None;
 
-    for called_num in called_numbers {
+    for called_num in called_nums {
         for board in bingo_boards.iter_mut() {
             board.mark_if_present(called_num);
         }
@@ -134,7 +134,7 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
             bingo_boards.retain(|board| !board.has_won())
         } else {
             if bingo_boards[0].has_won() {
-                solution = Some(bingo_boards[0].get_score(called_num));
+                solution = Some(bingo_boards[0].score(called_num));
                 break;
             }
         }
