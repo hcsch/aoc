@@ -1,11 +1,12 @@
-use std::fs;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
-
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
-use paste::paste;
+use std::{
+    fs,
+    io::{BufRead, BufReader},
+    path::Path,
+};
 
 use aoc_solutions::*;
+use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+use paste::paste;
 
 fn read_input_lines(year: u32, day: u32) -> Vec<String> {
     let input_path = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -68,7 +69,7 @@ macro_rules! bench_puzzles {
 
 bench_puzzles!(
     (2020, [01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12]),
-    (2021, [01, 02, 03])
+    (2021, [01, 02, 03, 04])
 );
 
 criterion_main!(benches_year2020, benches_year2021);
