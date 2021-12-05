@@ -10,14 +10,6 @@ impl Line {
         self.start[0] == self.end[0] || self.start[1] == self.end[1]
     }
 
-    pub fn min_x(&self) -> u16 {
-        cmp::min(self.start[0], self.end[0])
-    }
-
-    pub fn min_y(&self) -> u16 {
-        cmp::min(self.start[1], self.end[1])
-    }
-
     pub fn max_x(&self) -> u16 {
         cmp::max(self.start[0], self.end[0])
     }
@@ -28,6 +20,57 @@ impl Line {
 
     pub fn max_coords(&self) -> [u16; 2] {
         [self.max_x(), self.max_y()]
+    }
+
+    pub fn step(&self) -> [i8; 2] {
+        [
+            (self.end[0] as i32 - self.start[0] as i32).signum() as i8,
+            (self.end[1] as i32 - self.start[1] as i32).signum() as i8,
+        ]
+    }
+}
+
+impl IntoIterator for &Line {
+    type Item = <LineIterator as Iterator>::Item;
+
+    type IntoIter = LineIterator;
+
+    fn into_iter(self) -> Self::IntoIter {
+        LineIterator {
+            current_pos: [i32::from(self.start[0]), i32::from(self.start[1])],
+            step: self.step(),
+            end: [i32::from(self.end[0]), i32::from(self.end[1])],
+        }
+    }
+}
+
+struct LineIterator {
+    current_pos: [i32; 2],
+    step: [i8; 2],
+    end: [i32; 2],
+}
+
+impl Iterator for LineIterator {
+    type Item = [u16; 2];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.step[0] >= 0 && self.current_pos[0] > self.end[0]
+            || self.step[0] < 0 && self.current_pos[0] < self.end[0]
+            || self.step[1] >= 0 && self.current_pos[1] > self.end[1]
+            || self.step[1] < 0 && self.current_pos[1] < self.end[1]
+        {
+            return None;
+        }
+
+        let current_pos = self.current_pos;
+
+        self.current_pos[0] += self.step[0] as i32;
+        self.current_pos[1] += self.step[1] as i32;
+
+        Some([
+            u16::try_from(current_pos[0]).unwrap(),
+            u16::try_from(current_pos[1]).unwrap(),
+        ])
     }
 }
 
@@ -76,10 +119,8 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut ocean_floor = vec![0u8; (max_x + 1) as usize * (max_y + 1) as usize];
 
     for line in &vent_lines {
-        for y in line.min_y()..=line.max_y() {
-            for x in line.min_x()..=line.max_x() {
-                ocean_floor[x as usize + y as usize * (max_x + 1) as usize] += 1;
-            }
+        for [x, y] in line {
+            ocean_floor[x as usize + y as usize * (max_x + 1) as usize] += 1;
         }
     }
 
@@ -89,5 +130,27 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
 }
 
 pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
-    todo!()
+    let vent_lines = parse_input(input_lines);
+
+    let [max_x, max_y] = vent_lines.iter().map(Line::max_coords).fold(
+        [0; 2],
+        |[global_max_x, global_max_y], [line_max_x, line_max_y]| {
+            [
+                cmp::max(global_max_x, line_max_x),
+                cmp::max(global_max_y, line_max_y),
+            ]
+        },
+    );
+
+    let mut ocean_floor = vec![0u8; (max_x + 1) as usize * (max_y + 1) as usize];
+
+    for line in &vent_lines {
+        for [x, y] in line {
+            ocean_floor[x as usize + y as usize * (max_x + 1) as usize] += 1;
+        }
+    }
+
+    let solution = ocean_floor.iter().filter(|&&x| x >= 2).count();
+
+    solution.to_string()
 }
