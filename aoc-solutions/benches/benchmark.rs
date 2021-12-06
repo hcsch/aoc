@@ -10,15 +10,14 @@ use paste::paste;
 
 fn read_input_lines(year: u32, day: u32) -> Vec<String> {
     let input_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join(&format!("../res/year{:04}/input_day{:02}.txt", year, day));
+        .join(&format!("../res/year{year:04}/input_day{day:02}.txt"));
 
     BufReader::new(
         fs::OpenOptions::new()
             .read(true)
             .open(&input_path)
             .expect(&format!(
-                "Could not open input file {:?} for reading",
-                &input_path
+                "Could not open input file {input_path:?} for reading"
             )),
     )
     .lines()
@@ -32,7 +31,7 @@ macro_rules! bench_puzzles {
             paste! {
                 $(
                     pub fn [<bench_year $year _day $day>](c: &mut Criterion) {
-                        let mut group = c.benchmark_group(&format!("year {:04} day {:02}", $year, $day));
+                        let mut group = c.benchmark_group(concat!("year ", stringify!($year), " day ", stringify!($day)));
 
                         let input_lines =
                             read_input_lines($year, $day);

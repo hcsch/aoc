@@ -47,18 +47,19 @@ struct Options {
 }
 
 fn main() {
-    let opts = Options::parse();
+    let Options {
+        input,
+        year,
+        day,
+        puzzle_number,
+    } = Options::parse();
 
-    let input_reader =
-        open_input_reader(opts.input).expect("Failed to open input file for reading");
+    let input_reader = open_input_reader(input).expect("Failed to open input file for reading");
     let input_lines = input_reader
         .lines()
         .map(|l| l.expect("Error occurred while reading lines from input"));
 
-    let solution = solve_puzzle(opts.year, opts.day, opts.puzzle_number, input_lines);
+    let solution = solve_puzzle(year, day, puzzle_number, input_lines);
 
-    println!(
-        "The solution to puzzle {} of day {} is \"{}\"",
-        opts.puzzle_number, opts.day, solution
-    )
+    println!("The solution to puzzle {puzzle_number} of day {day} is \"{solution}\"")
 }

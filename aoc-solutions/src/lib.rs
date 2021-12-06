@@ -22,9 +22,9 @@ macro_rules! gen_solve_puzzle_fn {
                         )+
                     )+
                     (_, 1..=25, 1..=2) => todo!("This puzzle has not yet been solved"),
-                    (_, day, 1..=2) => panic!("Invalid day {}! Must be between 1 and 25", day),
-                    (_, 1..=25, puzzle) => panic!("Invalid puzzle number {}! Must be either 1 or 2", puzzle),
-                    (_, day, puzzle) => panic!("Invalid day {} and puzzle number {}! Must be between 1 and 25 and either 1 or 2 respectively", day, puzzle),
+                    (_, day, 1..=2) => panic!("Invalid day {day}! Must be between 1 and 25"),
+                    (_, 1..=25, puzzle) => panic!("Invalid puzzle number {puzzle}! Must be either 1 or 2"),
+                    (_, day, puzzle) => panic!("Invalid day {day} and puzzle number {puzzle}! Must be between 1 and 25 and either 1 or 2 respectively"),
                 }
             }
         }
