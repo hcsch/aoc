@@ -18,27 +18,17 @@ fn triangular_num(n: u64) -> u64 {
 }
 
 pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
-    let horizontal_crab_positions = parse_input(input_lines);
+    let mut horizontal_crab_positions = parse_input(input_lines);
 
-    let (min, max) = horizontal_crab_positions
+    horizontal_crab_positions.sort_unstable();
+
+    // The median minimizes the sum absolute deviations.
+    let optimal_target_pos = horizontal_crab_positions[horizontal_crab_positions.len() / 2];
+
+    let optimal_fuel_cost = horizontal_crab_positions
         .iter()
-        .copied()
-        .fold((0, u16::MAX), |(min, max), pos| {
-            (min.min(pos), max.max(pos))
-        });
-
-    let (_optimal_target_pos, optimal_fuel_cost) = (min..=max)
-        .map(|target_pos| {
-            (
-                target_pos,
-                horizontal_crab_positions
-                    .iter()
-                    .map(|pos| pos.abs_diff(target_pos) as u64)
-                    .sum::<u64>(),
-            )
-        })
-        .min_by_key(|&(_target_pos, cost)| cost)
-        .expect("no crab positions were given");
+        .map(|pos| pos.abs_diff(optimal_target_pos) as u64)
+        .sum::<u64>();
 
     optimal_fuel_cost.to_string()
 }
@@ -46,25 +36,19 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
 pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let horizontal_crab_positions = parse_input(input_lines);
 
-    let (min, max) = horizontal_crab_positions
+    // The mean minimizes the sum of squared deviations, and apparently also
+    // the sum of the triangular numbers of the deviations?
+    // (which is what this puzzle requires).
+    let optimal_target_pos = (horizontal_crab_positions
         .iter()
-        .copied()
-        .fold((0, u16::MAX), |(min, max), pos| {
-            (min.min(pos), max.max(pos))
-        });
+        .map(|&pos| pos as u64)
+        .sum::<u64>()
+        / horizontal_crab_positions.len() as u64) as u16;
 
-    let (_optimal_target_pos, optimal_fuel_cost) = (min..=max)
-        .map(|target_pos| {
-            (
-                target_pos,
-                horizontal_crab_positions
-                    .iter()
-                    .map(|pos| triangular_num(pos.abs_diff(target_pos) as u64))
-                    .sum::<u64>(),
-            )
-        })
-        .min_by_key(|&(_target_pos, cost)| cost)
-        .expect("no crab positions were given");
+    let optimal_fuel_cost = horizontal_crab_positions
+        .iter()
+        .map(|pos| triangular_num(pos.abs_diff(optimal_target_pos) as u64))
+        .sum::<u64>();
 
     optimal_fuel_cost.to_string()
 }
