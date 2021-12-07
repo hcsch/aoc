@@ -13,6 +13,16 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> Vec<u16> {
         .collect()
 }
 
+/// Computes the median, assuming that it is an integral number.
+fn integer_median(nums: &mut Vec<u16>) -> u16 {
+    let len = nums.len();
+    if len % 2 != 0 {
+        *nums.select_nth_unstable(len / 2).1
+    } else {
+        (*nums.select_nth_unstable(len / 2 - 1).1 + *nums.select_nth_unstable(len / 2).1) / 2
+    }
+}
+
 fn triangular_num(n: u64) -> u64 {
     n * (n + 1) / 2
 }
@@ -20,22 +30,8 @@ fn triangular_num(n: u64) -> u64 {
 pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut horizontal_crab_positions = parse_input(input_lines);
 
-    let num_crabs = horizontal_crab_positions.len();
-
     // The median minimizes the sum absolute deviations.
-    let optimal_target_pos = if num_crabs % 2 != 0 {
-        *horizontal_crab_positions
-            .select_nth_unstable(num_crabs / 2)
-            .1
-    } else {
-        (*horizontal_crab_positions
-            .select_nth_unstable(num_crabs / 2 - 1)
-            .1
-            + *horizontal_crab_positions
-                .select_nth_unstable(num_crabs / 2)
-                .1)
-            / 2
-    };
+    let optimal_target_pos = integer_median(&mut horizontal_crab_positions);
 
     let optimal_fuel_cost = horizontal_crab_positions
         .iter()
