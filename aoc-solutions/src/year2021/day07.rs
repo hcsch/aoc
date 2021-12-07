@@ -23,7 +23,7 @@ fn integer_median(nums: &mut Vec<u16>) -> u16 {
     }
 }
 
-fn triangular_num(n: u64) -> u64 {
+fn triangular_num(n: u32) -> u32 {
     n * (n + 1) / 2
 }
 
@@ -35,8 +35,8 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
 
     let optimal_fuel_cost = horizontal_crab_positions
         .iter()
-        .map(|pos| pos.abs_diff(optimal_target_pos) as u64)
-        .sum::<u64>();
+        .map(|pos| pos.abs_diff(optimal_target_pos) as u32)
+        .sum::<u32>();
 
     optimal_fuel_cost.to_string()
 }
@@ -49,14 +49,14 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     // (which is what this puzzle requires).
     let optimal_target_pos = (horizontal_crab_positions
         .iter()
-        .map(|&pos| pos as u64)
-        .sum::<u64>()
-        / horizontal_crab_positions.len() as u64) as u16;
+        .map(|&pos| pos as u32)
+        .sum::<u32>()
+        / horizontal_crab_positions.len() as u32) as u16;
 
     let optimal_fuel_cost = horizontal_crab_positions
         .iter()
-        .map(|pos| triangular_num(pos.abs_diff(optimal_target_pos) as u64))
-        .sum::<u64>();
+        .map(|pos| triangular_num(pos.abs_diff(optimal_target_pos) as u32))
+        .sum::<u32>();
 
     optimal_fuel_cost.to_string()
 }
