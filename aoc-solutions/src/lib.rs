@@ -1,4 +1,4 @@
-#![feature(bool_to_option, once_cell)]
+#![feature(bool_to_option, once_cell, int_abs_diff)]
 
 use paste::paste;
 
@@ -33,5 +33,5 @@ macro_rules! gen_solve_puzzle_fn {
 
 gen_solve_puzzle_fn!(
     (2020, [01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12]),
-    (2021, [01, 02, 03, 04, 05, 06])
+    (2021, [01, 02, 03, 04, 05, 06, 07])
 );
