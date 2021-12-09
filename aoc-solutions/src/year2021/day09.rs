@@ -20,10 +20,10 @@ fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> Array2<u8> {
     Array2::from_shape_vec((width, raw_heights.len() / width), raw_heights).unwrap()
 }
 
-fn neighbors<'a>(
+fn neighbors(
     map_dim: ndarray::Dim<[usize; 2]>,
     index: (usize, usize),
-) -> impl 'a + Iterator<Item = (usize, usize)> {
+) -> impl Iterator<Item = (usize, usize)> {
     [
         index.0.checked_sub(1).map(|x| (x, index.1)),
         index.1.checked_sub(1).map(|y| (index.0, y)),
