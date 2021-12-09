@@ -62,17 +62,16 @@ fn basin_size_of_low_point(height_map: &Array2<u8>, low_point: (usize, usize)) -
     let mut in_basin = HashSet::new();
 
     in_basin.insert(low_point);
-    to_process.extend(neighbors(height_map.raw_dim(), low_point));
+    to_process
+        .extend(neighbors(height_map.raw_dim(), low_point).filter(|&point| height_map[point] < 9));
 
     while !to_process.is_empty() {
         let mut new_to_process = HashSet::new();
         for point in to_process.drain() {
-            if height_map[point] == 9 {
-                continue;
-            }
             in_basin.insert(point);
             new_to_process.extend(
-                neighbors(height_map.raw_dim(), point).filter(|point| !in_basin.contains(point)),
+                neighbors(height_map.raw_dim(), point)
+                    .filter(|&point| !in_basin.contains(&point) && height_map[point] < 9),
             );
         }
         to_process = new_to_process;
