@@ -71,7 +71,7 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> (Vec<u8>, Vec<
             );
         }
 
-        let board_nums_array = board_nums
+        let board_nums_array: [u8; 5 * 5] = board_nums
             .as_slice()
             .try_into()
             .expect("incorrect number of numbers per board, expected 5 * 5 = 25");
@@ -107,24 +107,24 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
 }
 
 pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
-    let (called_nums, mut bingo_boards) = parse_input(input_lines);
+    let (called_nums, bingo_boards) = parse_input(input_lines);
 
-    let mut solution = None;
+    let (_num_calls_to_win, score) = bingo_boards
+        .into_iter()
+        .filter_map(|mut board| {
+            let mut win = None;
+            for (i, called_num) in called_nums.iter().copied().enumerate() {
+                board.mark_if_present(called_num);
 
-    for called_num in called_nums {
-        for board in bingo_boards.iter_mut() {
-            board.mark_if_present(called_num);
-        }
-
-        if bingo_boards.len() > 1 {
-            bingo_boards.retain(|board| !board.has_won())
-        } else {
-            if bingo_boards[0].has_won() {
-                solution = Some(bingo_boards[0].score(called_num));
-                break;
+                if board.has_won() {
+                    win = Some((i, board.score(called_num)));
+                    break;
+                }
             }
-        }
-    }
+            win
+        })
+        .max_by_key(|(num_calls_to_win, _score)| *num_calls_to_win)
+        .unwrap();
 
-    solution.unwrap().to_string()
+    score.to_string()
 }
