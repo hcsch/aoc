@@ -15,6 +15,7 @@ dependencies = [
 name = "aoc-solutions"
 version = "0.1.0"
 dependencies = [
+ "array-init",
  "cgmath",
  "criterion",
  "envy",
@@ -49,6 +50,12 @@ checksum = "3f2a05fd1bd10b2527e20a2cd32d8873d115b8b39fe219ee25f42a8aca6ba278"
 dependencies = [
  "num-traits",
 ]
+
+[[package]]
+name = "array-init"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6945cc5422176fc5e602e590c2878d2c2acd9a4fe20a4baa7c28022521698ec6"
 
 [[package]]
 name = "atty"

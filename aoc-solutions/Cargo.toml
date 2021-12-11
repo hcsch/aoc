@@ -16,6 +16,7 @@ itertools = "0.10"
 ndarray = "0.15"
 cgmath = "0.18"
 paste = "1"
+array-init = "2"
 
 [dev-dependencies]
 criterion = { version = "0.3", features = ["real_blackbox"] }
