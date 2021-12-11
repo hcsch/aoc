@@ -42,18 +42,18 @@ impl OctopusState {
 impl TryFrom<u8> for OctopusState {
     type Error = &'static str;
 
-    fn try_from(energy_level: u8) -> Result<Self, Self::Error> {
-        match energy_level {
-            0 => Ok(OctopusState::L0),
-            1 => Ok(OctopusState::L1),
-            2 => Ok(OctopusState::L2),
-            3 => Ok(OctopusState::L3),
-            4 => Ok(OctopusState::L4),
-            5 => Ok(OctopusState::L5),
-            6 => Ok(OctopusState::L6),
-            7 => Ok(OctopusState::L7),
-            8 => Ok(OctopusState::L8),
-            9 => Ok(OctopusState::L9),
+    fn try_from(energy_level_ascii: u8) -> Result<Self, Self::Error> {
+        match energy_level_ascii {
+            b'0' => Ok(OctopusState::L0),
+            b'1' => Ok(OctopusState::L1),
+            b'2' => Ok(OctopusState::L2),
+            b'3' => Ok(OctopusState::L3),
+            b'4' => Ok(OctopusState::L4),
+            b'5' => Ok(OctopusState::L5),
+            b'6' => Ok(OctopusState::L6),
+            b'7' => Ok(OctopusState::L7),
+            b'8' => Ok(OctopusState::L8),
+            b'9' => Ok(OctopusState::L9),
             _ => Err("not a valid starting octopus energy level"),
         }
     }
@@ -63,39 +63,25 @@ fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> [OctopusState; WID
     array_init::from_iter(input_lines.flat_map(|line| {
         line.into_bytes()
             .into_iter()
-            .map(|b| OctopusState::try_from(b - b'0').unwrap())
+            .map(|b| OctopusState::try_from(b).unwrap())
     }))
     .unwrap()
 }
 
-fn index1d_to_2d(index: usize) -> (usize, usize) {
-    (index % WIDTH, index / WIDTH)
-}
-
-fn index2d_to_1d((x, y): (usize, usize)) -> usize {
-    x + y * WIDTH
-}
-
-fn neighbors(index: usize) -> impl Iterator<Item = usize> {
-    let (x, y) = index1d_to_2d(index);
-    let neighboring_xs = [x.checked_sub(1), Some(x + 1).filter(|&x| x < WIDTH)];
-    let neighboring_ys = [y.checked_sub(1), Some(y + 1).filter(|&y| y < HEIGHT)];
-    [
-        // row above
-        neighboring_xs[0].and_then(|x| neighboring_ys[0].map(|y| (x, y))),
-        neighboring_ys[0].map(|y| (x, y)),
-        neighboring_xs[1].and_then(|x| neighboring_ys[0].map(|y| (x, y))),
-        // same row
-        neighboring_xs[0].map(|x| (x, y)),
-        neighboring_xs[1].map(|x| (x, y)),
-        // row below
-        neighboring_xs[0].and_then(|x| neighboring_ys[1].map(|y| (x, y))),
-        neighboring_ys[1].map(|y| (x, y)),
-        neighboring_xs[1].and_then(|x| neighboring_ys[1].map(|y| (x, y))),
-    ]
-    .into_iter()
-    .filter_map(|opt_i| opt_i)
-    .map(index2d_to_1d)
+fn for_neighbors<F>(array: &mut [OctopusState; WIDTH * HEIGHT], i: usize, mut f: F)
+where
+    F: FnMut(&mut OctopusState),
+{
+    let x = i % WIDTH;
+    let y = i / WIDTH;
+    for neighbor_x in x.saturating_sub(1)..=x.saturating_add(1).min(WIDTH - 1) {
+        for neighbor_y in y.saturating_sub(1)..=y.saturating_add(1).min(HEIGHT - 1) {
+            if neighbor_x == x && neighbor_y == y {
+                continue;
+            }
+            f(&mut array[neighbor_x + neighbor_y * WIDTH]);
+        }
+    }
 }
 
 fn step_octopus_population(
@@ -117,9 +103,9 @@ fn step_octopus_population(
             .filter(|&(_, octopus_state)| octopus_state == OctopusState::Charged)
         {
             new_octopus_states[i] = OctopusState::Flashed;
-            for neighbor_i in neighbors(i) {
-                new_octopus_states[neighbor_i] = new_octopus_states[neighbor_i].increase_energy();
-            }
+            for_neighbors(&mut new_octopus_states, i, |neighbor| {
+                *neighbor = neighbor.increase_energy();
+            });
         }
 
         if new_octopus_states == octopus_states {
