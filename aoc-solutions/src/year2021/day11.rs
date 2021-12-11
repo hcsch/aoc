@@ -59,51 +59,55 @@ impl TryFrom<u8> for OctopusState {
     }
 }
 
-fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> [OctopusState; WIDTH * HEIGHT] {
-    array_init::from_iter(input_lines.flat_map(|line| {
-        line.into_bytes()
-            .into_iter()
-            .map(|b| OctopusState::try_from(b).unwrap())
+fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> [[OctopusState; WIDTH]; HEIGHT] {
+    array_init::from_iter(input_lines.map(|line| {
+        array_init::from_iter(line.bytes().map(|b| OctopusState::try_from(b).unwrap())).unwrap()
     }))
     .unwrap()
 }
 
-fn for_neighbors<F>(array: &mut [OctopusState; WIDTH * HEIGHT], i: usize, mut f: F)
+fn for_neighbors<F>(array: &mut [[OctopusState; WIDTH]; HEIGHT], x: usize, y: usize, mut f: F)
 where
     F: FnMut(&mut OctopusState),
 {
-    let x = i % WIDTH;
-    let y = i / WIDTH;
     for neighbor_x in x.saturating_sub(1)..=x.saturating_add(1).min(WIDTH - 1) {
         for neighbor_y in y.saturating_sub(1)..=y.saturating_add(1).min(HEIGHT - 1) {
             if neighbor_x == x && neighbor_y == y {
                 continue;
             }
-            f(&mut array[neighbor_x + neighbor_y * WIDTH]);
+            f(&mut array[neighbor_y][neighbor_x]);
         }
     }
 }
 
 fn step_octopus_population(
-    mut octopus_states: [OctopusState; WIDTH * HEIGHT],
-) -> (usize, [OctopusState; WIDTH * HEIGHT]) {
-    let mut new_octopus_states = [OctopusState::L0; WIDTH * HEIGHT];
+    mut octopus_states: [[OctopusState; WIDTH]; HEIGHT],
+) -> (usize, [[OctopusState; WIDTH]; HEIGHT]) {
+    let mut new_octopus_states = [[OctopusState::L0; WIDTH]; HEIGHT];
 
-    for (new_octopus_state, octopus_state) in new_octopus_states.iter_mut().zip(octopus_states) {
+    for (new_octopus_state, &octopus_state) in new_octopus_states
+        .iter_mut()
+        .flatten()
+        .zip(octopus_states.iter().flatten())
+    {
         *new_octopus_state = octopus_state.increase_energy();
     }
 
     octopus_states = new_octopus_states;
 
     loop {
-        for (i, _octopus_state) in octopus_states
+        for ((x, y), _octopus_state) in octopus_states
             .iter()
-            .copied()
             .enumerate()
-            .filter(|&(_, octopus_state)| octopus_state == OctopusState::Charged)
+            .flat_map(|(y, row)| {
+                row.into_iter()
+                    .enumerate()
+                    .map(move |(x, state)| ((x, y), state))
+            })
+            .filter(|&(_, octopus_state)| *octopus_state == OctopusState::Charged)
         {
-            new_octopus_states[i] = OctopusState::Flashed;
-            for_neighbors(&mut new_octopus_states, i, |neighbor| {
+            new_octopus_states[y][x] = OctopusState::Flashed;
+            for_neighbors(&mut new_octopus_states, x, y, |neighbor| {
                 *neighbor = neighbor.increase_energy();
             });
         }
@@ -117,6 +121,7 @@ fn step_octopus_population(
 
     let flashed_count = new_octopus_states
         .iter_mut()
+        .flatten()
         .filter(|state| **state == OctopusState::Flashed)
         .fold(0, |flashed_count, state| {
             *state = OctopusState::L0;
