@@ -1,5 +1,3 @@
-use std::cmp;
-
 struct BingoBoard {
     numbers: [u8; 5 * 5],
     marked: [bool; 5 * 5],
@@ -7,30 +5,18 @@ struct BingoBoard {
 
 impl BingoBoard {
     pub fn has_won(&self) -> bool {
-        (0..5)
-            .map(|i| {
-                let num_marked_in_row: u8 = self
-                    .marked
-                    .iter()
-                    .copied()
-                    .skip(i * 5)
-                    .take(5)
-                    .map(|marked| marked as u8)
-                    .sum();
-                let num_marked_in_col: u8 = self
-                    .marked
-                    .iter()
-                    .copied()
-                    .skip(i)
-                    .step_by(5)
-                    .map(|marked| marked as u8)
-                    .sum();
+        let row_won = self
+            .marked
+            .chunks(5)
+            .any(|row| row.iter().all(|marked| *marked));
 
-                cmp::max(num_marked_in_row, num_marked_in_col)
-            })
-            .max()
-            .unwrap()
-            >= 5
+        if row_won {
+            return true;
+        }
+
+        let column_won = (0..5).any(|i| self.marked[i..].iter().step_by(5).all(|marked| *marked));
+
+        column_won
     }
 
     pub fn score(&self, last_called_num: u8) -> usize {
