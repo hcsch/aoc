@@ -92,7 +92,7 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut path_stack = vec!["start"];
     let mut visited = vec!["start"];
 
-    let mut small_cave_visited_twice = false;
+    let mut small_cave_visited_twice = None;
 
     while let Some(children) = children_stack.last_mut() {
         if let Some(child) = children.next() {
@@ -107,11 +107,11 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
                 visited.push(child);
                 path_stack.push(child);
                 children_stack.push(cave_graph.neighbors(child));
-            } else if !small_cave_visited_twice && child != "start" {
+            } else if small_cave_visited_twice.is_none() && child != "start" {
                 visited.push(child);
                 path_stack.push(child);
                 children_stack.push(cave_graph.neighbors(child));
-                small_cave_visited_twice = true;
+                small_cave_visited_twice = Some(child);
             } else {
                 // Would visit more than one small cave a second time in this path
                 // → track back one step and carry on.
@@ -122,10 +122,8 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
             children_stack.pop();
             visited.pop();
             if let Some(predecessor) = path_stack.pop() {
-                if predecessor.bytes().all(|b| (b'a'..b'z').contains(&b))
-                    && visited.iter().find(|node| **node == predecessor).is_some()
-                {
-                    small_cave_visited_twice = false;
+                if small_cave_visited_twice.map_or(false, |small_cave| small_cave == predecessor) {
+                    small_cave_visited_twice = None;
                 }
             }
         }
