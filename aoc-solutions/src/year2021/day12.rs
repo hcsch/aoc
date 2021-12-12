@@ -61,7 +61,7 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
             if child == "end" {
                 num_paths += 1;
                 continue;
-            } else if child.bytes().all(|b| (b'A'..b'Z').contains(&b)) {
+            } else if child.bytes().all(|b| b.is_ascii_uppercase()) {
                 visited.push(child);
                 children_stack.push(cave_graph.neighbors(child));
             } else if !visited.contains(&child) {
@@ -99,7 +99,7 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
             if child == "end" {
                 num_paths += 1;
                 continue;
-            } else if child.bytes().all(|b| (b'A'..b'Z').contains(&b)) {
+            } else if child.bytes().all(|b| b.is_ascii_uppercase()) {
                 visited.push(child);
                 path_stack.push(child);
                 children_stack.push(cave_graph.neighbors(child));
