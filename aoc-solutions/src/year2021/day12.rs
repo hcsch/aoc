@@ -1,7 +1,47 @@
-use petgraph::graphmap::UnGraphMap;
+use std::collections::HashMap;
 
-fn parse_input(input_lines: &Vec<String>) -> UnGraphMap<&str, ()> {
-    UnGraphMap::<&str, ()>::from_edges(input_lines.iter().map(|line| line.split_once('-').unwrap()))
+struct UnGraph<'a> {
+    adjacency_map: HashMap<&'a str, Vec<&'a str>>,
+}
+
+impl<'a> UnGraph<'a> {
+    pub fn new() -> Self {
+        UnGraph {
+            adjacency_map: HashMap::new(),
+        }
+    }
+
+    pub fn add_edge(&mut self, node_a: &'a str, node_b: &'a str) {
+        self.adjacency_map
+            .entry(node_a)
+            .or_insert(Vec::new())
+            .push(node_b);
+        self.adjacency_map
+            .entry(node_b)
+            .or_insert(Vec::new())
+            .push(node_a);
+    }
+
+    pub fn from_edges<I: Iterator<Item = (&'a str, &'a str)>>(iterator: I) -> Self {
+        let mut graph = Self::new();
+        for (node_a, node_b) in iterator {
+            graph.add_edge(node_a, node_b);
+        }
+        graph
+    }
+
+    pub fn neighbors(&'a self, node: &str) -> impl 'a + Iterator<Item = &'a str> {
+        self.adjacency_map
+            .get(node)
+            .map(|neighbors| neighbors as &[&'a str])
+            .unwrap_or(&[])
+            .into_iter()
+            .copied()
+    }
+}
+
+fn parse_input<'a>(input_lines: &'a Vec<String>) -> UnGraph<'a> {
+    UnGraph::from_edges(input_lines.iter().map(|line| line.split_once('-').unwrap()))
 }
 
 pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
