@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+// Algorithm adapted from
+// https://github.com/petgraph/petgraph/blob/9ff688872b467d3e1b5adef19f5c52f519d3279c/src/algo/simple_paths.rs#L36-L102
+
 struct UnGraph<'a> {
     adjacency_map: HashMap<&'a str, Vec<&'a str>>,
 }
