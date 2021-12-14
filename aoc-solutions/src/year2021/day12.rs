@@ -95,25 +95,25 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut visited = vec![Cave::Start];
 
     while let Some(children) = children_stack.last_mut() {
-        if let Some(child) = children.next() {
-            if child == Cave::End {
-                num_paths += 1;
-                continue;
-            } else if let Cave::Large(_) = child {
+        match children.next() {
+            Some(Cave::End) => num_paths += 1,
+            Some(child @ Cave::Large(_)) => {
                 visited.push(child);
                 children_stack.push(cave_graph.neighbors(child));
-            } else if !visited.contains(&child) {
-                visited.push(child);
-                children_stack.push(cave_graph.neighbors(child));
-            } else {
-                // Would visit a small cave a second time in this path
-                // → track back one step and carry on.
-                continue;
             }
-        } else {
-            // Done with all the children of this node, track back one step.
-            children_stack.pop();
-            visited.pop();
+            Some(child @ Cave::Small(_)) if !visited.contains(&child) => {
+                visited.push(child);
+                children_stack.push(cave_graph.neighbors(child));
+            }
+            Some(Cave::Small(_) | Cave::Start) => {
+                // Would visit a small cave or start a second time in this path
+                // → track back one step and carry on.
+            }
+            None => {
+                // Done with all the children of this node, track back one step.
+                children_stack.pop();
+                visited.pop();
+            }
         }
     }
 
@@ -132,35 +132,38 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
     let mut small_cave_visited_twice = None;
 
     while let Some(children) = children_stack.last_mut() {
-        if let Some(child) = children.next() {
-            if child == Cave::End {
-                num_paths += 1;
-                continue;
-            } else if let Cave::Large(_) = child {
+        match children.next() {
+            Some(Cave::End) => num_paths += 1,
+            Some(child @ Cave::Large(_)) => {
                 visited.push(child);
                 path_stack.push(child);
                 children_stack.push(cave_graph.neighbors(child));
-            } else if !visited.contains(&child) {
+            }
+            Some(child @ Cave::Small(_)) if !visited.contains(&child) => {
                 visited.push(child);
                 path_stack.push(child);
                 children_stack.push(cave_graph.neighbors(child));
-            } else if small_cave_visited_twice.is_none() && child != Cave::Start {
+            }
+            Some(child @ Cave::Small(_)) if small_cave_visited_twice.is_none() => {
                 visited.push(child);
                 path_stack.push(child);
                 children_stack.push(cave_graph.neighbors(child));
                 small_cave_visited_twice = Some(child);
-            } else {
-                // Would visit more than one small cave a second time in this path
-                // → track back one step and carry on.
-                continue;
             }
-        } else {
-            // Done with all the children of this node, track back one step.
-            children_stack.pop();
-            visited.pop();
-            if let Some(predecessor) = path_stack.pop() {
-                if small_cave_visited_twice.map_or(false, |small_cave| small_cave == predecessor) {
-                    small_cave_visited_twice = None;
+            Some(Cave::Small(_) | Cave::Start) => {
+                // Would visit more than one small cave or start a second time in this path
+                // → track back one step and carry on.
+            }
+            None => {
+                // Done with all the children of this node, track back one step.
+                children_stack.pop();
+                visited.pop();
+                if let Some(predecessor) = path_stack.pop() {
+                    if small_cave_visited_twice
+                        .map_or(false, |small_cave| small_cave == predecessor)
+                    {
+                        small_cave_visited_twice = None;
+                    }
                 }
             }
         }
