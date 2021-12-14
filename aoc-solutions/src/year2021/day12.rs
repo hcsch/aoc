@@ -107,7 +107,7 @@ pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
             }
             Some(Cave::Small(_) | Cave::Start) => {
                 // Would visit a small cave or start a second time in this path
-                // → track back one step and carry on.
+                // → skip.
             }
             None => {
                 // Done with all the children of this node, track back one step.
@@ -152,7 +152,7 @@ pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
             }
             Some(Cave::Small(_) | Cave::Start) => {
                 // Would visit more than one small cave or start a second time in this path
-                // → track back one step and carry on.
+                // → skip.
             }
             None => {
                 // Done with all the children of this node, track back one step.
