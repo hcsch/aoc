@@ -17,7 +17,7 @@ fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> Array2<u8> {
 
     let width = width.unwrap();
 
-    Array2::from_shape_vec((width, raw_heights.len() / width), raw_heights).unwrap()
+    Array2::from_shape_vec((raw_heights.len() / width, width), raw_heights).unwrap()
 }
 
 fn neighbors(
@@ -25,21 +25,21 @@ fn neighbors(
     index: (usize, usize),
 ) -> impl Iterator<Item = (usize, usize)> {
     [
-        index.0.checked_sub(1).map(|x| (x, index.1)),
-        index.1.checked_sub(1).map(|y| (index.0, y)),
+        index.0.checked_sub(1).map(|y| (y, index.1)),
+        index.1.checked_sub(1).map(|x| (index.0, x)),
         index
             .0
             .checked_add(1)
-            .filter(|&x| x < map_dim[0])
-            .map(|x| (x, index.1)),
+            .filter(|&y| y < map_dim[0])
+            .map(|y| (y, index.1)),
         index
             .1
             .checked_add(1)
-            .filter(|&y| y < map_dim[1])
-            .map(|y| (index.0, y)),
+            .filter(|&x| x < map_dim[1])
+            .map(|x| (index.0, x)),
     ]
     .into_iter()
-    .filter_map(|neighboring_height| neighboring_height)
+    .filter_map(|neighboring_index| neighboring_index)
 }
 
 pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
