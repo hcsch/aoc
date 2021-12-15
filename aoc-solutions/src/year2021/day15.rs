@@ -1,25 +1,17 @@
 use std::{cmp::Ordering, collections::BinaryHeap};
 
-use ndarray::{self, Array2, Axis};
+use array_init;
 
-fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> Array2<u8> {
-    let mut width = None;
-    let raw_risk_levels: Vec<u8> = input_lines
-        .flat_map(|line| {
-            if let Some(width) = width {
-                if width != line.len() {
-                    panic!("not all lines of same length");
-                }
-            } else {
-                width = Some(line.len());
-            }
-            line.into_bytes().into_iter().map(|b| b - b'0')
-        })
-        .collect();
+const TILE_WIDTH: usize = 100;
+const TILE_HEIGHT: usize = 100;
 
-    let width = width.expect("expected non-empty input file");
+fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> [[u8; TILE_WIDTH]; TILE_HEIGHT] {
+    let risk_levels = array_init::from_iter(input_lines.map(|line| {
+        array_init::from_iter(line.into_bytes().into_iter().map(|b| b - b'0')).unwrap()
+    }))
+    .unwrap();
 
-    Array2::from_shape_vec((raw_risk_levels.len() / width, width), raw_risk_levels).unwrap()
+    risk_levels
 }
 
 // Algorithm adapted from
@@ -27,8 +19,8 @@ fn parse_input<I: Iterator<Item = String>>(input_lines: I) -> Array2<u8> {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct DijkstraState {
-    risk: usize,
-    position: (usize, usize),
+    risk: u16,
+    position: [usize; 2],
 }
 
 impl Ord for DijkstraState {
@@ -36,8 +28,8 @@ impl Ord for DijkstraState {
         self.risk
             .cmp(&other.risk)
             .reverse() // minimal risk is "greater"
-            .then_with(|| self.position.0.cmp(&other.position.0))
-            .then_with(|| self.position.1.cmp(&other.position.1))
+            .then_with(|| self.position[0].cmp(&other.position[0]))
+            .then_with(|| self.position[1].cmp(&other.position[1]))
     }
 }
 
@@ -47,41 +39,38 @@ impl PartialOrd for DijkstraState {
     }
 }
 
-fn neighbors(
-    map_dim: ndarray::Dim<[usize; 2]>,
-    position: (usize, usize),
-) -> impl Iterator<Item = (usize, usize)> {
+fn neighbors(map_dim: [usize; 2], position: [usize; 2]) -> impl Iterator<Item = [usize; 2]> {
     [
         // above
-        position.0.checked_sub(1).map(|y| (y, position.1)),
+        position[0].checked_sub(1).map(|y| [y, position[1]]),
         // left
-        position.1.checked_sub(1).map(|x| (position.0, x)),
+        position[1].checked_sub(1).map(|x| [position[0], x]),
         // below
-        position
-            .0
+        position[0]
             .checked_add(1)
             .filter(|&y| y < map_dim[0])
-            .map(|y| (y, position.1)),
+            .map(|y| [y, position[1]]),
         // right
-        position
-            .1
+        position[1]
             .checked_add(1)
             .filter(|&x| x < map_dim[1])
-            .map(|x| (position.0, x)),
+            .map(|x| [position[0], x]),
     ]
     .into_iter()
     .filter_map(|neighboring_pos| neighboring_pos)
 }
 
-fn dijkstra_min_risk(risk_map: &Array2<u8>) -> usize {
-    const START: (usize, usize) = (0, 0);
-    let end = (risk_map.nrows() - 1, risk_map.ncols() - 1);
+fn dijkstra_min_risk<const MAP_WIDTH: usize, const MAP_HEIGHT: usize>(
+    risk_map: [[u8; MAP_WIDTH]; MAP_HEIGHT],
+) -> u16 {
+    const START: [usize; 2] = [0, 0];
+    let end = [MAP_HEIGHT - 1, MAP_WIDTH - 1];
 
-    let mut risk_of_path_to = risk_map.map(|_| usize::MAX);
+    let mut risk_of_path_to = [[u16::MAX; MAP_WIDTH]; MAP_HEIGHT];
 
     let mut heap = BinaryHeap::new();
 
-    risk_of_path_to[START] = 0;
+    risk_of_path_to[START[0]][START[1]] = 0;
     heap.push(DijkstraState {
         risk: 0,
         position: START,
@@ -92,19 +81,19 @@ fn dijkstra_min_risk(risk_map: &Array2<u8>) -> usize {
             return risk;
         }
 
-        if risk > risk_of_path_to[position] {
+        if risk > risk_of_path_to[position[0]][position[1]] {
             continue;
         }
 
-        for neighboring_pos in neighbors(risk_map.raw_dim(), position) {
+        for neighboring_pos in neighbors([MAP_HEIGHT, MAP_WIDTH], position) {
             let next = DijkstraState {
-                risk: risk + risk_map[neighboring_pos] as usize,
+                risk: risk + risk_map[neighboring_pos[0]][neighboring_pos[1]] as u16,
                 position: neighboring_pos,
             };
 
-            if next.risk < risk_of_path_to[next.position] {
+            if next.risk < risk_of_path_to[next.position[0]][next.position[1]] {
                 heap.push(next);
-                risk_of_path_to[next.position] = next.risk;
+                risk_of_path_to[next.position[0]][next.position[1]] = next.risk;
             }
         }
     }
@@ -115,41 +104,31 @@ fn dijkstra_min_risk(risk_map: &Array2<u8>) -> usize {
 pub fn solve_puzzle1<I: Iterator<Item = String>>(input_lines: I) -> String {
     let risk_map = parse_input(input_lines);
 
-    let solution = dijkstra_min_risk(&risk_map);
+    let solution = dijkstra_min_risk(risk_map);
 
     solution.to_string()
 }
 
 pub fn solve_puzzle2<I: Iterator<Item = String>>(input_lines: I) -> String {
-    let risk_map = parse_input(input_lines);
+    let risk_map_tile = parse_input(input_lines);
 
     // Concatenate mapped tile into 5 tile row.
-    let risk_map = ndarray::concatenate(
-        Axis(1),
-        &[
-            risk_map.view(),
-            risk_map.mapv(|b| b % 9 + 1).view(),
-            risk_map.mapv(|b| (b + 1) % 9 + 1).view(),
-            risk_map.mapv(|b| (b + 2) % 9 + 1).view(),
-            risk_map.mapv(|b| (b + 3) % 9 + 1).view(),
-        ],
-    )
-    .unwrap();
+    let mut risk_map = [[0; TILE_WIDTH * 5]; TILE_HEIGHT * 5];
+    for tile_y in 0..5 {
+        for (row_i, row) in risk_map_tile.iter().enumerate() {
+            for tile_x in 0..5 {
+                for (dst, src) in risk_map[tile_y * TILE_HEIGHT + row_i]
+                    [tile_x * TILE_WIDTH..(tile_x + 1) * TILE_WIDTH]
+                    .iter_mut()
+                    .zip(row)
+                {
+                    *dst = (src - 1 + (tile_x as u8 + tile_y as u8)) % 9 + 1;
+                }
+            }
+        }
+    }
 
-    // Concatenate mapped rows into 5x5 tile grid.
-    let risk_map = ndarray::concatenate(
-        Axis(0),
-        &[
-            risk_map.view(),
-            risk_map.mapv(|b| b % 9 + 1).view(),
-            risk_map.mapv(|b| (b + 1) % 9 + 1).view(),
-            risk_map.mapv(|b| (b + 2) % 9 + 1).view(),
-            risk_map.mapv(|b| (b + 3) % 9 + 1).view(),
-        ],
-    )
-    .unwrap();
-
-    let solution = dijkstra_min_risk(&risk_map);
+    let solution = dijkstra_min_risk(risk_map);
 
     solution.to_string()
 }
