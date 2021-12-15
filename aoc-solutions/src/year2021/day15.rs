@@ -70,7 +70,9 @@ impl PartialOrd for DijkstraState {
     }
 }
 
-fn neighbors(map_dim: [usize; 2], position: [u16; 2]) -> impl Iterator<Item = [u16; 2]> {
+fn neighbors<const MAP_WIDTH: usize, const MAP_HEIGHT: usize>(
+    position: [u16; 2],
+) -> impl Iterator<Item = [u16; 2]> {
     [
         // above
         position[0].checked_sub(1).map(|y| [y, position[1]]),
@@ -79,12 +81,12 @@ fn neighbors(map_dim: [usize; 2], position: [u16; 2]) -> impl Iterator<Item = [u
         // below
         position[0]
             .checked_add(1)
-            .filter(|&y| y < map_dim[0] as u16)
+            .filter(|&y| y < MAP_HEIGHT as u16)
             .map(|y| [y, position[1]]),
         // right
         position[1]
             .checked_add(1)
-            .filter(|&x| x < map_dim[1] as u16)
+            .filter(|&x| x < MAP_WIDTH as u16)
             .map(|x| [position[0], x]),
     ]
     .into_iter()
@@ -114,7 +116,7 @@ fn dijkstra_min_risk<M: Map, const MAP_WIDTH: usize, const MAP_HEIGHT: usize>(ri
             continue;
         }
 
-        for neighboring_pos in neighbors([MAP_HEIGHT, MAP_WIDTH], position) {
+        for neighboring_pos in neighbors::<MAP_WIDTH, MAP_HEIGHT>(position) {
             let next = DijkstraState {
                 risk: risk + risk_map.get(neighboring_pos) as u16,
                 position: neighboring_pos,
