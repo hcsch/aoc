@@ -4,15 +4,6 @@ struct Target {
     pub max: [i16; 2],
 }
 
-impl Target {
-    pub fn in_target(&self, probe: Probe) -> bool {
-        probe.pos()[0] >= self.min[0]
-            && probe.pos()[1] >= self.min[1]
-            && probe.pos()[0] <= self.max[0]
-            && probe.pos()[1] <= self.max[1]
-    }
-}
-
 fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> Target {
     let first_line = input_lines.next().unwrap();
     let first_line = first_line.strip_prefix("target area: x=").unwrap();
