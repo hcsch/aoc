@@ -1,79 +1,39 @@
-use std::collections::HashSet;
-
-use array_init;
-
-fn window3x3_indices(index: [i32; 2]) -> impl Iterator<Item = [i32; 2]> {
-    let [center_row, center_col] = index;
-    [
-        [center_row - 1, center_col - 1],
-        [center_row - 1, center_col],
-        [center_row - 1, center_col + 1],
-        [center_row, center_col - 1],
-        [center_row, center_col],
-        [center_row, center_col + 1],
-        [center_row + 1, center_col - 1],
-        [center_row + 1, center_col],
-        [center_row + 1, center_col + 1],
-    ]
-    .into_iter()
-}
+use ndarray::Array2;
 
 struct Image {
     default_lit: bool,
-    inverted_pixels: HashSet<[i32; 2]>,
+    pixels: Array2<bool>,
 }
 
 impl Image {
-    fn enhanced_pixel_value(&self, algorithm: [bool; 512], index: [i32; 2]) -> bool {
-        let [center_row, center_col] = index;
-        let mut lookup_index = 0;
-        for row in center_row - 1..=center_row + 1 {
-            for col in center_col - 1..=center_col + 1 {
-                lookup_index = lookup_index << 1
-                    | (self.default_lit ^ self.inverted_pixels.contains(&[row, col])) as usize;
-            }
-        }
-        algorithm[lookup_index]
-    }
-
     pub fn enhance(&self, algorithm: [bool; 512]) -> Self {
-        if self.default_lit && !algorithm[0b_111_111_111]
-            || !self.default_lit && !algorithm[0b_000_000_000]
-        {
-            Image {
-                default_lit: false,
-                inverted_pixels: self
-                    .inverted_pixels
-                    .iter()
-                    .copied()
-                    .flat_map(|unlit_pixel_i| {
-                        window3x3_indices(unlit_pixel_i).filter_map(|pixel_i| {
-                            self.enhanced_pixel_value(algorithm, pixel_i)
-                                .then_some(pixel_i)
-                        })
-                    })
-                    .collect(),
-            }
-        } else {
-            Image {
-                default_lit: true,
-                inverted_pixels: self
-                    .inverted_pixels
-                    .iter()
-                    .copied()
-                    .flat_map(|unlit_pixel_i| {
-                        window3x3_indices(unlit_pixel_i).filter_map(|pixel_i| {
-                            (!self.enhanced_pixel_value(algorithm, pixel_i)).then_some(pixel_i)
-                        })
-                    })
-                    .collect(),
-            }
+        let mut padded_pixels = Array2::from_elem(
+            (self.pixels.shape()[0] + 4, self.pixels.shape()[1] + 4),
+            self.default_lit,
+        );
+        padded_pixels
+            .slice_mut(ndarray::s![
+                2..padded_pixels.shape()[0] - 2,
+                2..padded_pixels.shape()[1] - 2
+            ])
+            .assign(&self.pixels);
+        let new_pixels = ndarray::Zip::from(padded_pixels.windows((3, 3))).map_collect(|window| {
+            let lookup_index = window.iter().fold(0, |lookup_index, pixel_lit| {
+                lookup_index << 1 | *pixel_lit as usize
+            });
+            algorithm[lookup_index]
+        });
+
+        Image {
+            default_lit: (!self.default_lit && algorithm[0b_000_000_000])
+                || (self.default_lit && algorithm[0b_111_111_111]),
+            pixels: new_pixels,
         }
     }
 
     pub fn count_lit(&self) -> Option<usize> {
         if !self.default_lit {
-            Some(self.inverted_pixels.len())
+            Some(self.pixels.iter().filter(|lit| **lit).count())
         } else {
             None
         }
@@ -87,22 +47,28 @@ fn parse_input<I: Iterator<Item = String>>(mut input_lines: I) -> ([bool; 512], 
     // Skip empty line.
     input_lines.next().unwrap();
 
-    let lit_pixels = input_lines
-        .enumerate()
-        .flat_map(|(row, image_row_string)| {
-            image_row_string
-                .into_bytes()
-                .into_iter()
-                .enumerate()
-                .filter_map(move |(col, b)| (b == b'#').then_some([row as i32, col as i32]))
+    let mut columns = None;
+
+    let pixels: Vec<bool> = input_lines
+        .flat_map(|image_row_string| {
+            if let Some(width) = columns {
+                if image_row_string.len() != width {
+                    panic!("expected all image rows to be of the same width");
+                }
+            } else {
+                columns = Some(image_row_string.len());
+            }
+            image_row_string.into_bytes().into_iter().map(|b| b == b'#')
         })
         .collect();
+
+    let columns = columns.expect("expected non-empty input");
 
     (
         image_enhancement_algo,
         Image {
             default_lit: false,
-            inverted_pixels: lit_pixels,
+            pixels: Array2::from_shape_vec((pixels.len() / columns, columns), pixels).unwrap(),
         },
     )
 }
